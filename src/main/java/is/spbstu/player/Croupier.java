@@ -7,4 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Croupier extends Player {
+    @Override
+    public String getPlayerName() {
+        return "Croupier";
+    }
+
 }

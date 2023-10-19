@@ -21,7 +21,7 @@ public class ConsoleGame implements Game {
         }
         Collections.shuffle(cards);
         for (int i = 0; i < numberOfPlayers; i++) {
-            players.add(new OrdinaryPlayer());
+            players.add(new OrdinaryPlayer(String.format("Player %d", i)));
         }
 
         croupier = new Croupier();
@@ -62,14 +62,16 @@ public class ConsoleGame implements Game {
 
         while (!playersInGame.isEmpty()) {
             OrdinaryPlayer currentPlayer = playersInGame.removeLast();
+            System.out.println("--------------------------------------------");
             boolean wantMoreCards = askWantMoreCards(currentPlayer);
             if (wantMoreCards) {
                 Card nextCard = giveNextCard();
                 boolean isMaxValue = false;
                 if (nextCard.isAce()) {
-                    isMaxValue = askWhichValueToUse();
+                    isMaxValue = askWhichValueToUse(currentPlayer);
                 }
                 currentPlayer.receiveCard(nextCard, isMaxValue);
+                System.out.println(String.format("Your current score: %s", currentPlayer.getCurrentScore()));
             }
             if ((currentPlayer.getCurrentScore() < 21) && (wantMoreCards)){
                 playersInGame.addFirst(currentPlayer);
@@ -78,20 +80,22 @@ public class ConsoleGame implements Game {
     }
 
     private boolean askWantMoreCards(OrdinaryPlayer ordinaryPlayer) {
-        return ordinaryPlayer.getCurrentScore()<21 && askValidation();
+        return ordinaryPlayer.getCurrentScore()<21 && askValidation(ordinaryPlayer, "Do you want more cards?");
     }
 
-    private Boolean askWhichValueToUse() {
-        return askValidation();
+    private Boolean askWhichValueToUse(OrdinaryPlayer ordinaryPlayer) {
+        return askValidation(ordinaryPlayer, "Do you want to use the ace with value of 11? Yes / no");
     }
 
 
-    private Boolean askValidation() {
+    private Boolean askValidation(OrdinaryPlayer ordinaryPlayer, String proposal) {
         Scanner s = new Scanner(System.in);
 
         while (true) {
 
-            System.out.println("Do you want to use th ace with value of 11? Yes / no");
+            System.out.println(String.format("Hello, %s", ordinaryPlayer.getName()));
+            System.out.println(String.format("Your current score: %s", ordinaryPlayer.getCurrentScore()));
+            System.out.println(proposal);
             String answer = s.next().toLowerCase();
 
             if (!Set.of("yes", "no").contains(answer)) {
