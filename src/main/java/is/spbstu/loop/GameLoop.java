@@ -1,12 +1,12 @@
 package is.spbstu.loop;
 
-import is.spbstu.game.ConsoleGameCreator;
 import is.spbstu.game.Game;
+import is.spbstu.game.GameFactory;
 
 public class GameLoop {
 
     public static void main(String[] args) {
-        Game game = new ConsoleGameCreator().createGame(3);
+        Game game = GameFactory.createGame(false,3);
 
         game.handOutCards();
 
