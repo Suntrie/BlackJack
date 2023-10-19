@@ -10,7 +10,7 @@ public class GameLoop {
 
         game.handOutCards();
 
-        boolean isCroupierWinner = game.getCroupier().isWinner();
+        boolean isCroupierWinner = game.getCroupier().isFastWinner();
 
         if (!isCroupierWinner) {
             game.performOrdinaryPlayerRounds();

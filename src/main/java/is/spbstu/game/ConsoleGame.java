@@ -16,6 +16,11 @@ public class ConsoleGame implements Game {
     private final Croupier croupier;
 
     public ConsoleGame(int numberOfPlayers) {
+
+        if (numberOfPlayers < 0) {
+            throw new IllegalArgumentException("Number of players should be >=0");
+        }
+
         for (int i = 0; i < NUMBER_OF_CARD_PACKS; i++) {
             cards.addAll(new CardPack().getCards());
         }
@@ -32,7 +37,11 @@ public class ConsoleGame implements Game {
         for (int i = 0; i < 2; i++) {
             for (OrdinaryPlayer player : players) {
                 Card nextCard = giveNextCard();
-                player.receiveCard(nextCard);
+                boolean isMaxValue = false;
+                if (nextCard.isAce()) {
+                    isMaxValue = askUseMaxAceValue(player);
+                }
+                player.receiveCard(nextCard, isMaxValue);
             }
         }
 
@@ -41,7 +50,6 @@ public class ConsoleGame implements Game {
             getCroupier().receiveCard(nextCard);
         }
     }
-
 
 
     @Override
@@ -58,37 +66,41 @@ public class ConsoleGame implements Game {
 
     @Override
     public void performOrdinaryPlayerRounds() {
-        Deque<OrdinaryPlayer> playersInGame = new ArrayDeque<>(players.stream().filter(player -> player.getCurrentScore()<21).toList());
+        Deque<OrdinaryPlayer> playersInGame = new ArrayDeque<>(players.stream().filter(player -> player.getCurrentScore() < 21).toList());
 
         while (!playersInGame.isEmpty()) {
             OrdinaryPlayer currentPlayer = playersInGame.removeLast();
             System.out.println("--------------------------------------------");
             boolean wantMoreCards = askWantMoreCards(currentPlayer);
-            if (wantMoreCards) {
+            boolean askedOnce = false;
+            while (wantMoreCards) {
+                askedOnce = true;
                 Card nextCard = giveNextCard();
                 boolean isMaxValue = false;
                 if (nextCard.isAce()) {
-                    isMaxValue = askWhichValueToUse(currentPlayer);
+                    isMaxValue = askUseMaxAceValue(currentPlayer);
                 }
                 currentPlayer.receiveCard(nextCard, isMaxValue);
-                System.out.println(String.format("Your current score: %s", currentPlayer.getCurrentScore()));
+                System.out.println(String.format("Current score of %s is: %s", currentPlayer.getName(),
+                        currentPlayer.getCurrentScore()));
+                wantMoreCards = askWantMoreCards(currentPlayer);
             }
-            if ((currentPlayer.getCurrentScore() < 21) && (wantMoreCards)){
+            if ((currentPlayer.getCurrentScore() < 21) && (askedOnce)) {
                 playersInGame.addFirst(currentPlayer);
             }
         }
     }
 
-    private boolean askWantMoreCards(OrdinaryPlayer ordinaryPlayer) {
-        return ordinaryPlayer.getCurrentScore()<21 && askValidation(ordinaryPlayer, "Do you want more cards?");
+    protected boolean askWantMoreCards(OrdinaryPlayer ordinaryPlayer) {
+        return ordinaryPlayer.getCurrentScore() < 21 && askValidation(ordinaryPlayer, "Do you want more cards?");
     }
 
-    private Boolean askWhichValueToUse(OrdinaryPlayer ordinaryPlayer) {
+    protected boolean askUseMaxAceValue(OrdinaryPlayer ordinaryPlayer) {
         return askValidation(ordinaryPlayer, "Do you want to use the ace with value of 11? Yes / no");
     }
 
 
-    private Boolean askValidation(OrdinaryPlayer ordinaryPlayer, String proposal) {
+    private boolean askValidation(OrdinaryPlayer ordinaryPlayer, String proposal) {
         Scanner s = new Scanner(System.in);
 
         while (true) {
@@ -122,4 +134,10 @@ public class ConsoleGame implements Game {
         Optional<Integer> maxScore = nonFailingPlayers.stream().map(Player::getCurrentScore).max(Comparator.naturalOrder());
         return nonFailingPlayers.stream().filter(player -> player.getCurrentScore() == maxScore.get()).toList();
     }
+
+    @Override
+    public Deque<OrdinaryPlayer> getPlayers() {
+        return new ArrayDeque<>(this.players);
+    }
+
 }
